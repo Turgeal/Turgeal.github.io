@@ -1,0 +1,4 @@
+Diabetes_012,HighBP_mean,HighChol_mean,BMI_mean,PhysActivity_mean,Age_mean
+0.0,0.371,0.379,27.743,0.779,7.787
+1.0,0.629,0.621,30.724,0.678,9.083
+2.0,0.753,0.67,31.944,0.631,9.379

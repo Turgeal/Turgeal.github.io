@@ -1,0 +1,267 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{ctex}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    backgroundcolor=\color{gray!10},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{red},
+    commentstyle=\color{green!60!black},
+}
+
+\pagestyle{fancy}
+\fancyhf{}\fancyhead[L]{Big Data Project}\fancyhead[R]{\thepage}
+\linespread{1.3}
+
+\begin{document}
+
+\title{\textbf{Big Data Analysis Project Report}}
+\author{Your Name \and Student ID}
+\date{\today}
+
+\maketitle
+\newpage
+
+% ===================== Q1 =====================
+\section{Q1: WorkBuddy for Clinical Data Analysis}
+
+\subsection{(1) WorkBuddy系统架构与技能}
+
+\subsubsection{系统架构}
+
+WorkBuddy 是腾讯云 CodeBuddy 旗下的下一代 AI 智能体引擎，基于"同源底座与分层解耦"的设计哲学，采用五层架构：
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.45\textwidth}
+\centering
+\begin{tabular}{|p{2.5cm}|p{3.5cm}|}
+\hline
+\textbf{层次} & \textbf{功能} \\ \hline
+第五层 & 用户交互层（桌面客户端/企微/微信/飞书/钉钉）\\ \hline
+第四层 & 业务应用层（会议助手/销售助手/财务助手等）\\ \hline
+第三层 & 能力服务层（文档处理/数据处理/内容创作等）\\ \hline
+第二层 & 智能体底座层（自然语言理解/任务规划/工具调用/执行监控）\\ \hline
+第一层 & 基础设施层（腾讯云+本地运行环境）\\ \hline
+\end{tabular}
+\end{minipage}
+\end{figure}
+
+\textbf{核心工作原理}：
+
+\begin{enumerate}
+    \item 用户输入自然语言指令（如"分析糖尿病数据"）
+    \item LLM 推理层解析意图，自动拆解为多步骤任务
+    \item 工具调用层选择合适工具（Spark SQL/DataFrame/文件操作等）
+    \item 执行监控器处理异常，完成后交付成果
+    \item 关键信息持久化到记忆模块供后续使用
+\end{enumerate}
+
+\textbf{双模式运行}：
+\begin{itemize}
+    \item \textbf{云端沙箱模式}：任务在腾讯云隔离环境执行，支持定时/后台任务
+    \item \textbf{本地执行模式}：任务在本地电脑执行，数据不上传云端
+\end{itemize}
+
+\subsubsection{数据分析相关技能（3个）}
+
+\textbf{1. SQL 代码生成（Text-to-SQL）}
+\begin{itemize}
+    \item 根据自然语言问题自动生成 Spark SQL 语句
+    \item 支持复杂查询：GROUP BY、JOIN、子查询、窗口函数
+    \item 示例：输入"统计每个糖尿病类别人数"，自动生成聚合查询
+\end{itemize}
+
+\textbf{2. DataFrame 数据操作}
+\begin{itemize}
+    \item 生成 .groupBy()、.agg()、.withColumn() 等 DataFrame API 代码
+    \item 支持 describe()、crosstab()、correlation 等统计分析
+    \item 自动完成 Schema 推断、数据类型转换、缺失值处理
+\end{itemize}
+
+\textbf{3. 多模态内容生成与可视化}
+\begin{itemize}
+    \item 支持生成图表（折线图/柱状图/热力图）和数据报告
+    \item 自动归纳数据洞察（observations \& conclusions）
+    \item 可直接输出 PDF、PPTX、Word 等格式文档
+\end{itemize}
+
+\textbf{扩展技能}：
+\begin{itemize}
+    \item Spark/PySpark 数据分析
+    \item PDF/Word/Excel 处理
+    \item MySQL/SQL 数据库操作
+    \item 定时任务自动化（RRULE 调度）
+\end{itemize}
+
+\subsection{(2) Spark DataFrame分析}
+
+\textbf{Schema：} 共253,680行$\times$22列，推断为double类型。
+
+\textbf{类别分布（Spark SQL API）：}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}cccc@{}}
+\toprule
+类别 & 含义 & 数量 & 占比 \\ \midrule
+0.0 & 无糖尿病 & 213,703 & 84.24\% \\
+1.0 & 糖尿病前期 & 4,631 & 1.83\% \\
+2.0 & 糖尿病 & 35,346 & 13.93\% \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{5项指标描述性分析（DataFrame API）：}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lccc@{}}
+\toprule
+指标 & 0（无糖尿病） & 1（前期） & 2（糖尿病） \\ \midrule
+HighBP & 0.371 & 0.629 & 0.753 \\
+HighChol & 0.379 & 0.621 & 0.670 \\
+BMI & 27.74 & 30.72 & 31.94 \\
+PhysActivity & 0.779 & 0.678 & 0.631 \\
+Age & 7.79 & 9.08 & 9.38 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+两种API结果完全一致。风险因素相关性：HighBP(+0.272)、BMI(+0.224)、HighChol(+0.209)为风险因素；Income(-0.172)、PhysActivity(-0.122)为保护因素。
+
+\subsection{(3) 数据洞察}
+
+\textbf{观察1：BMI是最强连续型风险因素} \\
+糖尿病组平均BMI=31.94（超肥胖临界值30），无糖尿病组=27.74，差值4.2个单位。
+
+\textbf{观察2：高血压/高胆固醇构成双高风险} \\
+高血压率从37.1\%（无糖尿病）升至75.3\%（糖尿病）；身体活动率从77.9\%降至63.1\%。
+
+\textbf{观察3：年龄是最强协同风险因子} \\
+年龄相关系数r=0.185；高收入为保护因素（r=-0.172）。
+
+\subsection{(4) 失败案例分析}
+
+\textbf{任务：} 询问糖尿病前期1.83\%的类别不平衡问题及处理方法。
+
+\textbf{期望：} 应指出严重不平衡问题，建议SMOTE/欠采样/代价敏感学习。
+
+\textbf{实际回答：} 仅说"样本较少，建议进一步调查"，未提机器学习影响和处理方法。
+
+\textbf{原因：} LLM对类别不平衡的高阶数据科学知识理解不足，倾向于输出通用描述。
+
+\textbf{WorkBuddy最有价值之处：} 将自然语言直接转化为可执行代码，大幅降低大数据分析门槛；内置18+工具集支持完整的数据处理流程。
+
+% ===================== Q2 =====================
+\newpage
+\section{Q2: Survival Analysis}
+
+\subsection{(1) PySpark代码}
+详见Notebook：\texttt{Q2\_survival\_analysis.ipynb}
+
+核心代码片段：
+\begin{lstlisting}[language=Python]
+# 加载数据
+spark = SparkSession.builder.appName('Survival_Analysis').getOrCreate()
+bronze_df = spark.read.format('csv').schema(schema).load(csv_path)
+
+# 预处理：churnString->churn，过滤月付+互联网用户
+silver_df = bronze_df \
+    .withColumn('churn', when(col('churnString')=='Yes',1.0).otherwise(0.0)) \
+    .filter(col('contract')=='Month-to-month') \
+    .filter(col('internetService')!='No')
+
+telco_pd = silver_df.toPandas()
+
+# Kaplan-Meier拟合
+kmf = KaplanMeierFitter()
+kmf.fit(telco_pd['tenure'], telco_pd['churn'])
+\end{lstlisting}
+
+\subsection{(2) 生存分析报告}
+
+\textbf{数据概况：} 7,032客户，流失1,869人（26.58\%），中位生存时间=34个月。
+
+\textbf{分层分析结果：}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lc@{}}
+\toprule
+变量 & 中位生存时间/结论 \\ \midrule
+DSL & 约52个月 \\
+Fiber optic & 约26个月（流失最快） \\
+在线安全=Yes & 流失率约14\% \\
+在线安全=No & 流失率约31\% \\
+性别 & p=0.73，无显著差异（阴性对照） \\ \bottomrule
+\end{tabular}
+\end{table}
+
+Log-Rank检验：internetService和onlineSecurity的p值均<0.05，生存曲线差异显著。
+
+\subsection{(3) MySQL + LLM Text-to-SQL}
+
+\textbf{数据库：} MySQL 8.0，表customers，7,043条记录。
+
+\textbf{测试结果（DeepSeek模型）：}
+\begin{itemize}
+    \item Q1: 流失客户数 = 1,869
+    \item Q2: Fiber optic流失率41.89\%，DSL 18.96\%
+    \item Q3: 女性Fiber optic流失 = 664人
+    \item Q4: 未流失平均tenure=37.57月，流失=17.98月
+    \item Q5: Electronic check流失率45.29\%
+    \item Q6: tenure低于平均值的客户流失率=38.68\%
+\end{itemize}
+
+\textbf{失败案例1（HAVING条件语义偏差）：}
+\begin{itemize}
+    \item 问：哪些支付方式的流失率超过30\%
+    \item LLM生成的SQL语法正确，但流失率用小数(0.45)而非百分比(45\%)返回
+    \item 分析：用户期望百分比形式，但LLM直接用AVG(CASE WHEN...)返回0-1小数
+    \item 正确SQL应乘以100或格式化显示
+\end{itemize}
+
+\textbf{失败案例2（聚合函数与WHERE执行顺序混淆）：}
+\begin{itemize}
+    \item 问：找出月费超过50但流失率低于30\%的支付方式
+    \item LLM生成的SQL：
+    \begin{verbatim}
+SELECT paymentMethod, AVG(CASE WHEN churn='Yes' THEN 1 ELSE 0 END) AS churn_rate
+FROM customers WHERE monthlyCharges > 50 GROUP BY paymentMethod HAVING churn_rate < 0.3
+    \end{verbatim}
+    \item 问题：WHERE条件先执行再分组，流失率计算的是"月费>50客户"的流失率，不是该支付方式总体流失率
+    \item 正确理解：应先按支付方式分组计算总体流失率，再用HAVING筛选>30\%
+\end{itemize}
+
+\textbf{失败案例3（统计量语义理解错误）：}
+\begin{itemize}
+    \item 问：找出流失率波动最大的支付方式，用方差衡量
+    \item LLM生成：\texttt{VARIANCE(churn)}按支付方式分组
+    \item 问题：VARIANCE(churn)计算的是"每个支付方式内部客户流失的方差"，而用户想要的是"不同支付方式之间流失率的差异"
+    \item 正确做法：应先计算各支付方式的流失率，再对这些流失率计算方差
+\end{itemize}
+
+\textbf{LLM失效场景总结：}
+\begin{enumerate}
+    \item 聚合结果格式期望（百分比vs小数）与实际不符
+    \item WHERE执行顺序导致聚合结果非预期（先过滤后聚合vs先聚合后过滤）
+    \item 统计量语义理解偏差（组内方差vs组间方差）
+    \item 复杂嵌套条件的优先级处理
+    \item 多步骤逻辑分解不完整
+\end{enumerate}
+
+\subsection{(4) 个人网站（用户自行完成）}
+
+需完成：①申请域名 ②GitHub Pages建站 ③写博客包含Q2-(2)分析报告。
+
+\end{document}

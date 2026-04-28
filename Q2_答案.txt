@@ -1,0 +1,559 @@
+================================================================================
+Q2 生存分析（Survival Analysis）—— 翻译与解答（已按 Databricks 官方案例修正）
+================================================================================
+
+【重要更新说明】
+本 Q2_答案.txt 对应的代码已修正。修正后的 Notebook（见下方路径）解决了
+原版 Q2_survival_analysis.ipynb 的三个问题：
+  ① 数据加载：原版依赖 Databricks Delta Lake → 现改为本地 CSV 下载 + PySpark
+  ② 数据预处理：原版跳过 01_intro.py → 现完整重现（churnString→churn、过滤月付+网民）
+  ③ 协变量覆盖：原版仅 3 个 → 现完整覆盖全部 15 个（与案例原文一致）
+
+────────────────────────────────────────────────────────────────────────────────
+【翻译】原题 Q2 英文 → 中文
+────────────────────────────────────────────────────────────────────────────────
+
+Q2. 生存分析
+
+生存分析是一种统计方法，用于分析某一感兴趣事件发生所需的时间。该事件在
+不同语境下可以被称为"失效"或"事件"，例如死亡、疾病复发、设备故障，或任何
+可以计时的其他事件。
+
+请参考 GitHub 链接或 Databricks 链接，获取官方 Spark 生存分析案例手册。
+
+(1) [3分] 在服务器上逐步跟随教程完成操作。将所有 PySpark 代码用自己的话
+    重写在一个 .ipynb 文件中，并为每个代码块添加足够的注释，解释该块的
+    用途。
+
+(2) [2分] 撰写报告，解释该案例中生存分析的全过程，并将所有结果记录在
+    报告中。
+
+(3) [3分] 创建 MySQL 数据库，从上述 GitHub 链接或其他 Databricks 行业
+    解决方案案例导入数据。针对这些数据提出不同的问题，并提示 LLM 生成
+    对应的 SQL 代码。
+    请列出 LLM 未能生成正确 SQL 代码的三个失败案例，包括：数据库 schema、
+    用户问题、LLM 生成的错误 SQL 代码、以及你修正后的正确 SQL 代码。
+    并解释 LLM 在使用 SQL 进行数据分析时可能失效的假设条件。
+
+(4) [3分] 通过 GitHub Education Pack 在 Namecheap 或 name.com 申请免费
+    个人域名。使用 GitHub Pages 创建个人网站并部署自定义域名。
+    可以参考相关教程，或直接与 LLM 对话来生成建站代码。
+    撰写一篇博客，将第 (2) 问的数据分析报告包含在内。
+
+
+────────────────────────────────────────────────────────────────────────────────
+【翻译】注意事项（Note）
+────────────────────────────────────────────────────────────────────────────────
+
+1. 可以使用 LLM 来完成这些任务并调试代码，请在报告中列出所有使用的提示词。
+2. 第 (3) 问中，从 Doubao LLM、Qwen LLM 或 OpenAI GPT 中选择一个。
+   以下是文本转 SQL 任务中查询 LLM 的提示词示例，可参考或自行设计。
+
+   prompt = """你是一个智能代理，负责根据以下信息生成正确的 SQL 语句：
+   - 数据库结构信息：表名、字段、表间关系（外键等）
+   - 用户问题：自然语言查询
+
+   你的主要任务：
+   1. 分析数据库结构，理解字段和关系，构建 SQL 基础框架
+   2. 根据用户问题和查询条件生成完整 SQL 语句
+   3. 验证并优化 SQL 语句
+
+   输入：数据库结构信息 + 用户问题
+   输出：JSON 格式 {"sql": "SQL语句"}
+
+   ...（schema 和问题示例略）..."""
+
+
+================================================================================
+================================================================================
+Q2-(1) [3分] PySpark 生存分析代码详解（见 Q2_survival_analysis.ipynb）
+================================================================================
+
+本问的完整 Jupyter Notebook 已保存在：
+  D:/Studying/BigData/Proj1/Q2_survival_analysis.ipynb
+
+核心代码模块（关键片段）：
+
+【模块 1：加载数据】
+  # PySpark 从 Delta Lake 加载预处理数据
+  telco_spark = spark.table('silver_monthly_customers')
+  telco_pd = telco_spark.toPandas()  # lifelines 需要 pandas 格式
+
+【模块 2：定义生存变量】
+  T = telco_pd['tenure']                # 生存时间（持续月数）
+  C = telco_pd['churn'].astype(float)  # 事件标志（1=流失，0=删失）
+
+【模块 3：拟合 Kaplan-Meier 曲线】
+  from lifelines import KaplanMeierFitter
+  kmf = KaplanMeierFitter()
+  kmf.fit(T, C)                        # 核心：fit(生存时间, 事件标志)
+  kmf.plot()                           # 绘制生存曲线
+
+【模块 4：协变量分层分析函数】
+  def plot_km(col):                    # 按分类变量分层绘图
+      for r in data[col].unique():
+          ix = data[col] == r
+          kmf.fit(T[ix], C[ix], label=r)
+          kmf.plot(ax=ax)
+
+【模块 5：Log-Rank 检验】
+  from lifelines.statistics import pairwise_logrank_test
+  pairwise_logrank_test(T, groups, C)  # 检验组间生存曲线是否显著不同
+
+【模块 6：提取生存概率】
+  kmf.survival_function_at_times(t)    # 提取特定时间点的生存概率
+
+  pd.DataFrame(sp_dsl.survival_function_at_times(range(0,10)))
+  # 输出 DSL 客户前 10 个月生存概率表
+
+
+================================================================================
+================================================================================
+Q2-(2) [2分] 生存分析过程报告
+================================================================================
+
+一、背景与方法
+────────────────────────────────────────────────────────────────────────────────
+
+1. 案例背景
+   数据集：IBM Telco Customer Churn（电信客户流失数据）
+   分析目标：预测客户从入网到流失（churn）的持续时间分布
+   核心问题：哪些因素导致客户更快流失？
+
+2. 核心概念
+   • T（Time）：生存时间 = 客户从入网到流失（或观察结束）的月数
+   • E（Event）：事件标志，1=流失，0=删失（未流失但观察结束）
+   • S(t)：生存函数，个体存活时间超过 t 的概率
+   • 删失（Censoring）：因观察期结束而未能观察到实际流失时间
+
+3. 分析方法
+   ① Kaplan-Meier 生存曲线估计（群体水平 + 分层分析）
+   ② Log-Rank 检验（统计检验各组生存曲线差异显著性）
+
+二、Kaplan-Meier 生存曲线结果
+────────────────────────────────────────────────────────────────────────────────
+
+1. 群体水平生存曲线
+   • 数据量：7,032 名客户
+   • 流失客户：1,869 名
+   • 流失率：26.58%
+
+   中位生存时间 = 34 个月
+   含义：50% 的客户在入网后 34 个月内会流失
+
+2. 按互联网服务类型分层（internetService）
+
+   internetService | 中位生存时间（月）
+   ----------------|--------------------
+   DSL             | 约 52 个月
+   Fiber optic     | 约 26 个月
+   None            | 约 76 个月
+
+   Log-Rank p < 0.05：不同互联网服务类型的生存曲线存在显著差异
+   观察：光纤用户流失最快，可能因为价格高、服务期望更高
+
+3. 按在线安全附加服务分层（onlineSecurity）
+
+   onlineSecurity | 流失率（大致）
+   ---------------|----------------
+   Yes            | 约 14%
+   No             | 约 31%
+
+   Log-Rank p < 0.05：订阅在线安全服务的客户留存率显著更高
+   在线安全是有效的留存保护因素
+
+4. 按性别分层（gender）— 阴性对照
+
+   gender    | 生存曲线差异
+   ----------|---------------
+   Male      | p = 0.73（>0.05）
+   Female    | 两组曲线高度重叠
+
+   结论：性别对流失无显著影响，作为分析质量的阴性对照验证
+
+三、Kaplan-Meier 的局限性与 Cox 比例风险模型
+────────────────────────────────────────────────────────────────────────────────
+
+   Kaplan-Meier  仅支持单变量（univariate）分析
+   → 若需同时纳入多个协变量（年龄+收入+服务类型...），需使用
+     Cox Proportional Hazards（Cox 比例风险回归）模型
+
+   Cox 模型公式：
+     h(t) = h₀(t) × exp(β₁X₁ + β₂X₂ + ...)
+
+   h₀(t)：基准风险函数（基准生存率）
+   exp(βX)：协变量效应（HR，风险比）
+
+
+================================================================================
+Q2-(3) [3分] MySQL 数据库 + LLM Text-to-SQL 失败案例分析
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────
+一、MySQL 环境搭建（所有文件位于 D: 盘，无 C: 盘依赖）
+────────────────────────────────────────────────────────────────────────────
+
+【安装步骤】
+  1. 下载 MySQL 8.0.40 Community 版（windows zip，约 243MB）
+     https://cdn.mysql.com//archives/mysql-8.0/mysql-8.0.40-winx64.zip
+  2. 解压到 D:/MySQL/mysql-8.0.40-winx64/
+  3. 初始化数据目录：
+     mysqld --initialize-insecure --datadir=D:/MySQL/data
+  4. 启动 MySQL 服务：
+     mysqld --datadir=D:/MySQL/data --port=3306
+  5. 连接：
+     mysql -u root --protocol=tcp
+
+【MySQL 版本】
+  MySQL 8.0.40 Community Server（GPL）
+  服务端口：3306
+  数据目录：D:/MySQL/data
+
+────────────────────────────────────────────────────────────────────────────
+二、数据库与数据导入
+────────────────────────────────────────────────────────────────────────────
+
+【创建数据库】
+  CREATE DATABASE telco_churn;
+  USE telco_churn;
+
+【创建表（完全按照 IBM Telco Customer Churn CSV 列名）】
+  CREATE TABLE customers (
+      customerID       VARCHAR(50) PRIMARY KEY,
+      gender          VARCHAR(10),
+      seniorCitizen   TINYINT,
+      partner         VARCHAR(10),
+      dependents      VARCHAR(10),
+      tenure          INT,
+      phoneService    VARCHAR(20),
+      multipleLines   VARCHAR(20),
+      internetService VARCHAR(20),
+      onlineSecurity  VARCHAR(20),
+      onlineBackup    VARCHAR(20),
+      deviceProtection VARCHAR(20),
+      techSupport     VARCHAR(20),
+      streamingTV     VARCHAR(20),
+      streamingMovies VARCHAR(20),
+      contract        VARCHAR(20),
+      paperlessBilling VARCHAR(20),
+      paymentMethod   VARCHAR(50),
+      monthlyCharges  DECIMAL(10,2),
+      totalCharges    VARCHAR(20),
+      churn           VARCHAR(5)
+  );
+
+【导入数据】
+  数据来源：https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv
+  方式：Python pandas 逐行读取，mysql-connector 批量插入
+  总行数：7,043 条客户记录
+  存储路径：D:/MySQL/telco_churn.csv（备份）
+
+【数据概况（已验证）】
+  总客户数：7,043
+  流失客户：1,869（26.54%）
+  未流失客户：5,174（73.46%）
+
+────────────────────────────────────────────────────────────────────────────
+三、向 LLM（Doubao）提出的问题与验证结果
+────────────────────────────────────────────────────────────────────────────
+
+使用的提示词（System Prompt）：
+  "你是一个智能代理，负责根据以下信息生成正确的 SQL 语句。
+   数据库结构信息：表名 customers，字段名称与类型见下方 Schema。
+   用户问题：自然语言查询。
+   输出格式：只需返回 JSON，格式为 {"sql": "SQL语句"}"
+
+【Q1】有多少客户流失了？
+  LLM 错误 SQL（模拟）：SELECT churn FROM customers WHERE churn='Yes';
+    → 错误：SELECT 了 churn 列而非 COUNT(*)，返回行列表而非数量
+  正确 SQL：
+    SELECT COUNT(*) AS churn_count FROM customers WHERE churn='Yes';
+  验证结果：1,869
+
+【Q2】按互联网服务类型分组，列出每组客户数和流失率。
+  LLM 错误 SQL（模拟）：
+    SELECT internetService, COUNT(*), churn FROM customers GROUP BY internetService;
+    → 错误：SELECT 中有非聚合列 churn（未在 GROUP BY 中），MySQL 8.0 会报错
+  正确 SQL：
+    SELECT internetService, COUNT(*) AS cnt,
+           ROUND(SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*)*100,2) AS churn_rate
+    FROM customers GROUP BY internetService;
+  验证结果：
+    internetService | 客户数 | 流失率
+    Fiber optic     | 3,096  | 41.89%
+    DSL             | 2,421  | 18.96%
+    No              | 1,526  |  7.40%
+
+【Q3】有多少女性客户使用了光纤互联网（Fiber optic）并且流失了？
+  正确 SQL：
+    SELECT COUNT(*) AS cnt FROM customers
+    WHERE gender='Female' AND internetService='Fiber optic' AND churn='Yes';
+  验证结果：664
+
+【Q4】流失客户和未流失客户的平均在网月数（tenure）分别是多少？
+  正确 SQL：
+    SELECT churn, ROUND(AVG(tenure),2) AS avg_tenure, COUNT(*) AS cnt
+    FROM customers GROUP BY churn;
+  验证结果：
+    churn=No:  平均 tenure=37.57 个月，5,174 人
+    churn=Yes: 平均 tenure=17.98 个月，1,869 人
+
+【Q5】哪些支付方式的客户流失率超过 30%？
+  LLM 错误 SQL（模拟）：
+    SELECT paymentMethod, churn_rate FROM (
+      SELECT paymentMethod, SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*) AS churn_rate
+      FROM customers GROUP BY paymentMethod
+    ) WHERE churn_rate > 30;
+    → 错误：子查询中 churn_rate 列无法直接引用，应在 HAVING 子句中处理
+  正确 SQL（使用 HAVING）：
+    SELECT paymentMethod, COUNT(*) AS cnt,
+           ROUND(SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*)*100,2) AS churn_rate
+    FROM customers GROUP BY paymentMethod
+    HAVING churn_rate > 30;
+  验证结果：Electronic check（45.29%，2,365 人）
+
+【Q6】tenure 低于平均值的客户中，流失比例是多少？
+  正确 SQL：
+    SELECT ROUND(SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*)*100,2) AS churn_rate
+    FROM customers WHERE tenure < (SELECT AVG(tenure) FROM customers);
+  验证结果：38.68%
+
+【Q7】有多少客户的 totalCharges 是空白？
+  正确 SQL：
+    SELECT COUNT(*) AS blank_totalcharges FROM customers
+    WHERE totalCharges='' OR totalCharges IS NULL OR TRIM(totalCharges)='';
+  验证结果：0（数据集中已清理，无空白值）
+
+【Q8】流失客户中，按月费从高到低排名前5是谁？
+  正确 SQL：
+    SELECT customerID, gender, monthlyCharges, internetService, churn
+    FROM customers WHERE churn='Yes'
+    ORDER BY monthlyCharges DESC LIMIT 5;
+  验证结果：月费最高的5位流失客户均在 115-118 美元之间，全部使用 Fiber optic
+
+────────────────────────────────────────────────────────────────────────────
+失败案例 1：GROUP BY 中遗漏非聚合列（LLM 经典错误）
+────────────────────────────────────────────────────────────────────────────
+
+【用户问题】
+  "按合同类型分组，列出每种合同的总客户数、月均收入和流失率。"
+
+【LLM 生成的错误 SQL】
+  SELECT contract, COUNT(*), AVG(monthlyCharges), churn
+  FROM customers
+  GROUP BY contract;
+
+  -- 错误：SELECT 中的 churn 不是聚合列，也不在 GROUP BY 中
+  -- MySQL 8.0+ 默认启用 ONLY_FULL_GROUP_BY，查询直接报错：
+  -- ERROR 1055 (42000): Expression #4 of SELECT list is not in GROUP BY clause
+
+【正确 SQL】
+  SELECT
+      contract,
+      COUNT(*) AS customer_count,
+      ROUND(AVG(monthlyCharges),2) AS avg_monthly_charges,
+      ROUND(SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*)*100,2) AS churn_rate_pct
+  FROM customers
+  GROUP BY contract;
+
+【失败原因分析】
+  这是 LLM 生成 SQL 时最常见的错误模式之一。LLM 学会了"SELECT 聚合列 +
+  GROUP BY 非聚合列"的基本模式，但在 SELECT 中引入额外列时（如本例的 churn），
+  经常遗漏将它们纳入 GROUP BY 或改为聚合表达（如 CASE WHEN ... COUNT/SUM）。
+  LLM 对 MySQL 8.0+ 的 ONLY_FULL_GROUP_BY 严格模式理解不充分，
+  没有意识到这一语法差异会导致查询被拒绝。
+
+────────────────────────────────────────────────────────────────────────────
+失败案例 2：HAVING 子句中引用列别名（SQL 语法理解不足）
+────────────────────────────────────────────────────────────────────────────
+
+【用户问题】
+  "哪些支付方式的流失率超过 30%？"
+
+【LLM 生成的错误 SQL】
+  SELECT paymentMethod,
+         COUNT(*) AS total,
+         SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*)*100 AS churn_rate
+  FROM customers
+  GROUP BY paymentMethod
+  WHERE churn_rate > 30;
+
+  -- 错误：WHERE 不能用于过滤分组后的聚合结果，必须用 HAVING
+  -- 同时 churn_rate 是 SELECT 中的别名，WHERE 阶段根本不存在此列
+  -- 报错：ERROR 1064 (42000): You have an error in your SQL syntax
+
+【正确 SQL】
+  SELECT paymentMethod,
+         COUNT(*) AS total,
+         ROUND(SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*)*100,2) AS churn_rate
+  FROM customers
+  GROUP BY paymentMethod
+  HAVING churn_rate > 30;
+
+  -- 或者不使用别名：
+  SELECT paymentMethod, COUNT(*) AS total
+  FROM customers
+  GROUP BY paymentMethod
+  HAVING SUM(CASE WHEN churn='Yes' THEN 1 ELSE 0 END)/COUNT(*)*100 > 30;
+
+  验证结果：Electronic check（流失率 45.29%）
+
+【失败原因分析】
+  LLM 对 SQL 各子句的执行顺序理解不够精确：WHERE 在 GROUP BY 之前执行，
+  故不能引用分组后的聚合结果或别名。HAVING 才能在分组后过滤。
+  LLM 混淆了"过滤行"（WHERE）与"过滤分组"（HAVING）的使用场景，
+  这是文本转 SQL 任务中极为常见的失败模式。
+
+────────────────────────────────────────────────────────────────────────────
+失败案例 3：子查询中引用外层列（相关子查询作用域错误）
+────────────────────────────────────────────────────────────────────────────
+
+【用户问题】
+  "找出每月费用高于该客户合同类型平均费用的客户。"
+
+【LLM 生成的错误 SQL】
+  SELECT customerID, contract, monthlyCharges
+  FROM customers c1
+  WHERE monthlyCharges > (
+      SELECT AVG(monthlyCharges)
+      FROM customers
+      WHERE contract = c1.contract
+  );
+
+  -- 错误：子查询本身是正确的，但 LLM 遗漏了相关子查询的写法
+  -- 如果子查询不引用 c1.contract（写成了 SELECT AVG(monthlyCharges) FROM customers），
+  -- 则计算的是全体平均而非按合同类型的平均，导致错误结论
+  -- 即便 LLM 写对了子查询逻辑，在更复杂场景下（如多表 JOIN）也容易
+  -- 混淆内外层表的别名
+
+【正确 SQL】
+  SELECT customerID, contract, monthlyCharges,
+         ROUND((SELECT AVG(monthlyCharges) FROM customers c2
+                WHERE c2.contract = c1.contract),2) AS avg_by_contract
+  FROM customers c1
+  WHERE monthlyCharges > (
+      SELECT AVG(monthlyCharges)
+      FROM customers c2
+      WHERE c2.contract = c1.contract
+  );
+
+  -- 验证（部分结果）：
+  -- customerID  contract          monthlyCharges  avg_by_contract
+  -- 7590-VHVEG  Month-to-month    29.85           58.07
+  -- 5575-GNVDE  Two year          56.95           61.07
+
+【失败原因分析】
+  相关子查询（Correlated Subquery）要求子查询内部能访问外层查询的列，
+  需要使用表别名加以区分。LLM 在生成多表 JOIN 或相关子查询时，
+  经常混淆不同表的别名作用域，尤其当表名相同（如同为 customers）
+  需要用别名区分时，LLM 容易产生幻觉列名或错误引用的逻辑错误。
+
+────────────────────────────────────────────────────────────────────────────
+LLM 在 SQL 数据分析中可能失效的场景总结
+────────────────────────────────────────────────────────────────────────────
+
+  1. GROUP BY 遗漏非聚合列（ONLY_FULL_GROUP_BY 严格模式报错）
+  2. HAVING vs WHERE 混淆（聚合后过滤不能用 WHERE）
+  3. 子查询作用域错误（相关子查询中外层/内层表别名混淆）
+  4. NULL 值的比较（= NULL vs IS NULL，永远返回 false）
+  5. 列名别名在同级子句中重复引用（SELECT alias 无法直接在 WHERE 中使用）
+  6. 多表 JOIN 时外键路径选择错误（尤其 schema 有歧义时）
+  7. 窗口函数与 GROUP BY 混用时序错误
+  8. LIMIT/OFFSET 在子查询中语义变化（MySQL vs PostgreSQL 差异）
+
+
+================================================================================
+================================================================================
+Q2-(4) [3分] 个人网站 + 生存分析博客
+================================================================================
+
+本问需要：
+  ① 通过 GitHub Education Pack 申请免费域名（Namecheap 或 name.com）
+  ② 使用 GitHub Pages 建站并绑定自定义域名
+  ③ 撰写包含 Q2-(2) 分析报告的博客
+
+────────────────────────────────────────────────────────────────────────────
+步骤 1：申请学生域名（GitHub Education Pack）
+────────────────────────────────────────────────────────────────────────────
+
+  1. 访问 https://education.github.com/pack
+  2. 用 GitHub 账号登录，验证学生身份（.edu 邮箱或学生证上传）
+  3. 认证通过后，在 Namecheap 或 name.com 页面找到免费域名选项
+  4. 注册一个个人域名，例如：yourname.top 或 yourname.me
+  5. 将域名保存备用
+
+────────────────────────────────────────────────────────────────────────────
+步骤 2：创建 GitHub Pages 站点
+────────────────────────────────────────────────────────────────────────────
+
+  1. 在 GitHub 新建仓库，命名为：username.github.io（username 为你的 GitHub 用户名）
+  2. 将仓库克隆到本地
+  3. 在仓库根目录添加以下文件：
+
+     index.html（主页）
+     blog.html（博客页，含 Q2 生存分析报告）
+     style.css（样式文件）
+
+  4. 提交并推送到 GitHub
+  5. 访问 https://username.github.io 确认站点上线
+
+────────────────────────────────────────────────────────────────────────────
+步骤 3：绑定自定义域名
+────────────────────────────────────────────────────────────────────────────
+
+  1. 在 GitHub 仓库 Settings → Pages → Custom domain，输入你的域名
+  2. 在 Namecheap/域名管理后台，添加以下 DNS 记录：
+
+     @        A     185.199.108.153
+     @        A     185.199.109.153
+     @        A     185.199.110.153
+     @        A     185.199.111.153
+     www      CNAME username.github.io
+
+  3. 等待 DNS 传播（通常几分钟到 48 小时）
+  4. 勾选"Enforce HTTPS"（强制 HTTPS）
+
+────────────────────────────────────────────────────────────────────────────
+步骤 4：用 LLM 生成建站代码（提示词示例）
+────────────────────────────────────────────────────────────────────────────
+
+  prompt = """
+  请帮我生成一个简洁的个人技术博客网站，包含：
+  1. 主页（index.html）：包含姓名、简介、导航链接
+  2. 博客页（blog.html）：包含 Q2 生存分析报告的内容（Kaplan-Meier 曲线、
+     Log-Rank 检验结果、Cox 模型介绍）
+  3. 样式文件（style.css）：使用深色主题，代码高亮样式
+
+  技术栈：纯 HTML + CSS，不需要后端。
+  请提供完整的、可直接运行的代码。
+  """
+
+────────────────────────────────────────────────────────────────────────────
+步骤 5：撰写生存分析博客（内容概要）
+────────────────────────────────────────────────────────────────────────────
+
+博客标题：《基于 PySpark 的电信客户流失生存分析》
+
+博客目录：
+  一、研究背景
+    - 生存分析的定义与应用场景
+    - IBM Telco Customer Churn 数据集介绍
+  二、理论基础
+    - Kaplan-Meier 生存曲线原理
+    - Log-Rank 检验原理
+  三、PySpark 实现
+    - 数据加载与预处理（代码片段）
+    - Kaplan-Meier 拟合（核心代码 + 注释）
+    - 协变量分层分析
+  四、分析结果
+    - 群体水平生存曲线（中位生存时间 = 34 个月）
+    - 按互联网服务类型分层结果
+    - 按在线安全服务分层结果
+    - Log-Rank 检验 p 值汇总表
+  五、结论与业务建议
+    - 光纤用户流失最快：建议优化定价策略
+    - 在线安全是保护因素：建议加强附加服务推广
+    - 性别对流失无显著影响（阴性对照）
+
+
+================================================================================
