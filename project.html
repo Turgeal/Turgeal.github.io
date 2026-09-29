@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project</title>
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="site-header">
+  <a class="back-link" id="back-link" href="index.html">← Back</a>
+  <nav class="lang-switch">
+    <button type="button" class="lang-btn is-current" data-lang="en" aria-pressed="true" aria-label="Switch to English">EN</button>
+    <span class="lang-sep" aria-hidden="true">/</span>
+    <button type="button" class="lang-btn" data-lang="zh" aria-pressed="false" aria-label="Switch to Chinese">中文</button>
+  </nav>
+</header>
+<main>
+  <article id="project-view" hidden>
+    <h1 class="project-title" id="project-title"></h1>
+    <p class="project-oneliner" id="project-oneliner"></p>
+    <div class="heading-row">
+      <h2 class="block-heading" id="role-heading"></h2>
+    </div>
+    <p class="field-value" id="project-role"></p>
+    <div class="heading-row">
+      <h2 class="block-heading" id="stack-heading"></h2>
+    </div>
+    <p class="field-value" id="project-stack"></p>
+    <div class="heading-row">
+      <h2 class="block-heading" id="highlights-heading"></h2>
+    </div>
+    <ul class="plain-list" id="project-highlights"></ul>
+    <div class="heading-row">
+      <h2 class="block-heading" id="links-heading"></h2>
+    </div>
+    <ul class="plain-list" id="project-links"></ul>
+  </article>
+  <section id="not-found" hidden>
+    <div class="heading-row">
+      <h1 class="block-heading" id="nf-title"></h1>
+    </div>
+    <p id="nf-body"></p>
+    <p class="nf-back"><a id="nf-back" href="index.html"></a></p>
+  </section>
+</main>
+<script src="assets/content.js"></script>
+<script src="assets/project.js"></script>
+</body>
+</html>

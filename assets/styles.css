@@ -1,0 +1,145 @@
+/* Personal homepage — exactly four colors, defined once as variables. */
+:root {
+  --black:  #000000;
+  --white:  #FFFFFF;
+  --purple: #4E2A84;
+  --silver: #C0C0C0;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--black);
+  color: var(--white);
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+p { margin: 0; }
+
+::selection { background: var(--purple); color: var(--white); }
+
+:focus-visible { outline: 2px solid var(--silver); outline-offset: 2px; }
+
+a {
+  color: var(--white);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: background-color 120ms ease;
+}
+a:hover, a:active {
+  background: var(--purple);
+  color: var(--silver);
+  text-decoration: none;
+}
+a:hover strong, a:active strong { color: var(--silver); }
+
+/* Header: back link on the left (detail page only), language switch top right. */
+.site-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  padding: 1rem 1.25rem;
+}
+.back-link { margin-right: auto; }
+
+.lang-switch { display: flex; align-items: center; gap: .35rem; }
+.lang-btn {
+  appearance: none;
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: .2rem .35rem;
+  font: inherit;
+  color: var(--silver);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.lang-btn:hover { color: var(--white); }
+.lang-btn.is-current { color: var(--white); font-weight: 700; }
+.lang-sep { color: var(--silver); }
+
+/* Layout */
+main {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 5rem 1.25rem 5rem;
+  text-align: center;
+}
+
+.heading-row { margin: 2.2rem 0 1.1rem; }
+.heading-row:first-child { margin-top: 0; }
+
+.block-heading {
+  display: inline-block;
+  margin: 0;
+  background: var(--purple);
+  color: var(--silver);
+  padding: .35rem .9rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+h1.block-heading { font-size: 1.3rem; }
+h3.block-heading { font-size: .92rem; }
+html[lang^="zh"] .block-heading { text-transform: none; }
+
+/* Hero */
+.hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  text-align: left;
+}
+.portrait {
+  display: block;
+  flex: none;
+  width: 180px;
+  max-width: 200px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: 1px solid var(--silver);
+}
+.hero-text { min-width: 0; }
+.brief-line { margin: .3rem 0; }
+
+/* Sections and lists */
+.section { margin-top: 4rem; }
+.plain-list { list-style: none; margin: 0; padding: 0; }
+.plain-list li { margin: .55rem 0; }
+.list-label { margin: 1.6rem 0 .2rem; }
+.course-note { margin-top: 2.2rem; }
+
+/* Project detail page */
+.project-title {
+  font-size: 1.5rem;
+  line-height: 1.35;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+.project-oneliner { margin: 0 0 1rem; }
+.field-value { margin: 0; }
+.is-todo { color: var(--silver); }
+.nf-back { margin-top: 1.6rem; }
+
+@media (max-width: 640px) {
+  .hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .portrait { width: 140px; }
+}
