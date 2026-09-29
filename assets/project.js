@@ -184,22 +184,28 @@
     setField("project-oneliner", data.oneLiner);
     renderBody("project-body", data.body);
 
-    setField("project-role", data.role);
-    setField("project-stack", data.stack);
-    renderFieldList("project-highlights", data.highlights, true);
-    renderFieldList("project-links", data.links, true);
-
-    /* Once a page has real content, hide the placeholder sections that are still TODO. */
+    /* Once a page has real content, placeholder sections that are still TODO
+       are hidden and left empty. */
     var hasBody = Array.isArray(data.body) && data.body.length > 0;
     var linksEmpty = !Array.isArray(data.links) || data.links.length === 0;
-    setHidden("role-row", hasBody && isTodoValue(data.role));
-    setHidden("project-role", hasBody && isTodoValue(data.role));
-    setHidden("stack-row", hasBody && isTodoValue(data.stack));
-    setHidden("project-stack", hasBody && isTodoValue(data.stack));
-    setHidden("highlights-row", hasBody && isTodoValue(data.highlights));
-    setHidden("project-highlights", hasBody && isTodoValue(data.highlights));
-    setHidden("links-row", hasBody && linksEmpty);
-    setHidden("project-links", hasBody && linksEmpty);
+    var hideRole = hasBody && isTodoValue(data.role);
+    var hideStack = hasBody && isTodoValue(data.stack);
+    var hideHighlights = hasBody && isTodoValue(data.highlights);
+    var hideLinks = hasBody && linksEmpty;
+
+    setField("project-role", hideRole ? "" : data.role);
+    setField("project-stack", hideStack ? "" : data.stack);
+    renderFieldList("project-highlights", hideHighlights ? [] : data.highlights, !hideHighlights);
+    renderFieldList("project-links", hideLinks ? [] : data.links, !hideLinks);
+
+    setHidden("role-row", hideRole);
+    setHidden("project-role", hideRole);
+    setHidden("stack-row", hideStack);
+    setHidden("project-stack", hideStack);
+    setHidden("highlights-row", hideHighlights);
+    setHidden("project-highlights", hideHighlights);
+    setHidden("links-row", hideLinks);
+    setHidden("project-links", hideLinks);
 
     document.getElementById("project-view").hidden = false;
     document.getElementById("not-found").hidden = true;
