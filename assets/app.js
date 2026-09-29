@@ -24,10 +24,14 @@
     return node;
   }
 
-  /* Append one { t: "text", b?: bold, link?: true } part to a node;
-     only textContent is used, never innerHTML. */
+  /* Append one { t: "text", b?: bold, link?: true, br?: true } part to a
+     node; only textContent is used, never innerHTML. */
   function appendPart(node, part) {
     if (!part) { return; }
+    if (part.br) {
+      node.appendChild(document.createElement("br"));
+      return;
+    }
     var text = typeof part.t === "string" ? part.t : "";
     if (part.b) {
       var strong = document.createElement("strong");

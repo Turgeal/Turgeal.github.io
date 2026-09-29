@@ -51,7 +51,8 @@ window.CONTENT = {
         parts: [
           { t: "1. " },
           { t: "Meteorite classification based on neural network", link: true },
-          { t: " (" },
+          { br: true },
+          { t: "(" },
           { t: "ranking 1st in Kaggle among 19 groups", b: true },
           { t: ")." }
         ]
@@ -61,7 +62,8 @@ window.CONTENT = {
         parts: [
           { t: "2. " },
           { t: "Quant factor calculation based on Hadoop", link: true },
-          { t: " (" },
+          { br: true },
+          { t: "(" },
           { t: "full marks for the presentation part, for I vividly illustrated all concepts and procedures", b: true },
           { t: ")." }
         ]
@@ -71,7 +73,8 @@ window.CONTENT = {
         parts: [
           { t: "3. " },
           { t: "Deep Q-Learning on CartPole-v1", link: true },
-          { t: " (" },
+          { br: true },
+          { t: "(" },
           { t: "found a novel way to solve it, causing a round of applause", b: true },
           { t: ")." }
         ]
@@ -81,7 +84,8 @@ window.CONTENT = {
         parts: [
           { t: "4. " },
           { t: "How the distribution of mathematicians changes over time and across different places", link: true },
-          { t: " (" },
+          { br: true },
+          { t: "(" },
           { t: "I made a 3B1B-style video, causing a round of applause", b: true },
           { t: ")." }
         ]
@@ -253,6 +257,7 @@ window.CONTENT = {
         parts: [
           { t: "1. " },
           { t: "基于神经网络的陨石分类", link: true },
+          { br: true },
           { t: "（" },
           { t: "在 Kaggle 的 19 个小组中排名第一", b: true },
           { t: "）。" }
@@ -263,6 +268,7 @@ window.CONTENT = {
         parts: [
           { t: "2. " },
           { t: "基于 Hadoop 的量化因子计算", link: true },
+          { br: true },
           { t: "（" },
           { t: "展示部分获得满分，因为我生动地阐释了所有概念和流程", b: true },
           { t: "）。" }
@@ -273,6 +279,7 @@ window.CONTENT = {
         parts: [
           { t: "3. " },
           { t: "在 CartPole-v1 上的深度 Q 学习", link: true },
+          { br: true },
           { t: "（" },
           { t: "找到了一种新颖的解决方法，赢得阵阵掌声", b: true },
           { t: "）。" }
@@ -283,6 +290,7 @@ window.CONTENT = {
         parts: [
           { t: "4. " },
           { t: "数学家的分布如何随时间和不同地点变化", link: true },
+          { br: true },
           { t: "（" },
           { t: "我制作了一个 3B1B 风格视频，赢得阵阵掌声", b: true },
           { t: "）。" }
