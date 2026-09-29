@@ -171,6 +171,21 @@ html[lang^="zh"] .project-title {
 .is-todo { color: var(--silver); }
 .nf-back { margin-top: 1.6rem; }
 
+/* Project detail body: paragraphs, images, videos */
+#project-body { margin-top: .4rem; }
+.body-p { margin: .9rem 0; }
+.body-figure { margin: 1.8rem 0; }
+.body-figure img,
+.body-figure video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border: 1px solid var(--silver);
+}
+.body-figure video { width: 100%; }
+.body-caption { color: var(--silver); font-size: .95rem; margin-top: .6rem; }
+
 @media (max-width: 640px) {
   .hero {
     flex-direction: column;

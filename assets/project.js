@@ -25,26 +25,32 @@
     return node;
   }
 
-  /* Append text to a node. `value` is a string or an array of
-     { t: "text", b: true } parts; only textContent is used. */
+  /* Append one part to a node: plain text, { b: true } for <strong>,
+     { br: true } for a line break, { href, download } for a link. */
+  function appendPart(node, part) {
+    if (!part) { return; }
+    if (part.br) { node.appendChild(document.createElement("br")); return; }
+    var text = typeof part.t === "string" ? part.t : "";
+    var target = node;
+    if (part.href) {
+      var link = el("a");
+      link.href = part.href;
+      if (part.download) { link.setAttribute("download", ""); }
+      node.appendChild(link);
+      target = link;
+    }
+    if (part.b) {
+      var strong = document.createElement("strong");
+      strong.textContent = text;
+      target.appendChild(strong);
+    } else {
+      target.appendChild(document.createTextNode(text));
+    }
+  }
+
   function appendParts(node, value) {
-    if (typeof value === "string") {
-      node.appendChild(document.createTextNode(value));
-      return;
-    }
-    if (Array.isArray(value)) {
-      value.forEach(function (part) {
-        var text = part && typeof part.t === "string" ? part.t : "";
-        if (part && part.b) {
-          var strong = document.createElement("strong");
-          strong.textContent = text;
-          node.appendChild(strong);
-        } else {
-          node.appendChild(document.createTextNode(text));
-        }
-      });
-      return;
-    }
+    if (typeof value === "string") { node.appendChild(document.createTextNode(value)); return; }
+    if (Array.isArray(value)) { value.forEach(function (part) { appendPart(node, part); }); return; }
     if (value == null) { return; }
     node.appendChild(document.createTextNode(String(value)));
   }
@@ -114,14 +120,87 @@
     });
   }
 
+  /* Body blocks: { p: text | parts }, { img: { src, alt, caption } },
+     { video: { src, caption } }. */
+  function mediaFigure(kind, spec) {
+    var figure = el("figure", "body-figure");
+    if (kind === "img") {
+      var link = el("a");
+      link.href = spec.src;
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener");
+      var img = document.createElement("img");
+      img.src = spec.src;
+      img.alt = spec.alt || "";
+      img.loading = "lazy";
+      link.appendChild(img);
+      figure.appendChild(link);
+    } else {
+      var video = document.createElement("video");
+      video.controls = true;
+      video.preload = "metadata";
+      video.setAttribute("playsinline", "");
+      var source = document.createElement("source");
+      source.src = spec.src;
+      source.type = "video/mp4";
+      video.appendChild(source);
+      figure.appendChild(video);
+    }
+    if (spec.caption) {
+      var caption = el("figcaption", "body-caption");
+      appendParts(caption, spec.caption);
+      figure.appendChild(caption);
+    }
+    return figure;
+  }
+
+  function renderBody(containerId, blocks) {
+    var container = document.getElementById(containerId);
+    if (!container) { return; }
+    clear(container);
+    var list = Array.isArray(blocks) ? blocks : [];
+    list.forEach(function (block) {
+      if (!block) { return; }
+      if (block.p != null) {
+        var p = el("p", "body-p");
+        appendParts(p, block.p);
+        container.appendChild(p);
+      } else if (block.img) {
+        container.appendChild(mediaFigure("img", block.img));
+      } else if (block.video) {
+        container.appendChild(mediaFigure("video", block.video));
+      }
+    });
+  }
+
+  function setHidden(id, hide) {
+    var node = document.getElementById(id);
+    if (node) { node.hidden = hide; }
+  }
+
   function showProject(dictionary, data) {
     document.title = data.title + " — " + dictionary.pageTitle;
     setField("project-title", data.title);
     setField("project-oneliner", data.oneLiner);
+    renderBody("project-body", data.body);
+
     setField("project-role", data.role);
     setField("project-stack", data.stack);
     renderFieldList("project-highlights", data.highlights, true);
     renderFieldList("project-links", data.links, true);
+
+    /* Once a page has real content, hide the placeholder sections that are still TODO. */
+    var hasBody = Array.isArray(data.body) && data.body.length > 0;
+    var linksEmpty = !Array.isArray(data.links) || data.links.length === 0;
+    setHidden("role-row", hasBody && isTodoValue(data.role));
+    setHidden("project-role", hasBody && isTodoValue(data.role));
+    setHidden("stack-row", hasBody && isTodoValue(data.stack));
+    setHidden("project-stack", hasBody && isTodoValue(data.stack));
+    setHidden("highlights-row", hasBody && isTodoValue(data.highlights));
+    setHidden("project-highlights", hasBody && isTodoValue(data.highlights));
+    setHidden("links-row", hasBody && linksEmpty);
+    setHidden("project-links", hasBody && linksEmpty);
+
     document.getElementById("project-view").hidden = false;
     document.getElementById("not-found").hidden = true;
   }
