@@ -167,6 +167,7 @@ html[lang^="zh"] .project-title {
   margin: 0 0 1rem;
 }
 .project-oneliner { margin: 0 0 1rem; }
+.pending-note { margin-top: .6rem; }
 .field-value { margin: 0; }
 .is-todo { color: var(--silver); }
 .nf-back { margin-top: 1.6rem; }

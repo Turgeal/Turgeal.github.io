@@ -180,18 +180,22 @@
 
   function showProject(dictionary, data) {
     document.title = data.title + " — " + dictionary.pageTitle;
+    var hasBody = Array.isArray(data.body) && data.body.length > 0;
     setField("project-title", data.title);
-    setField("project-oneliner", data.oneLiner);
+    setField("project-oneliner", hasBody ? data.oneLiner : "");
     renderBody("project-body", data.body);
 
-    /* Once a page has real content, placeholder sections that are still TODO
-       are hidden and left empty. */
-    var hasBody = Array.isArray(data.body) && data.body.length > 0;
+    /* Pages without any content yet show a single pending note; pages that do
+       have content hide whatever placeholder sections are still TODO. */
     var linksEmpty = !Array.isArray(data.links) || data.links.length === 0;
-    var hideRole = hasBody && isTodoValue(data.role);
-    var hideStack = hasBody && isTodoValue(data.stack);
-    var hideHighlights = hasBody && isTodoValue(data.highlights);
-    var hideLinks = hasBody && linksEmpty;
+    var hideRole = !hasBody || isTodoValue(data.role);
+    var hideStack = !hasBody || isTodoValue(data.stack);
+    var hideHighlights = !hasBody || isTodoValue(data.highlights);
+    var hideLinks = !hasBody || linksEmpty;
+
+    setHidden("project-oneliner", !hasBody);
+    setText("pending-note", dictionary.pendingNote);
+    setHidden("pending-note", hasBody);
 
     setField("project-role", hideRole ? "" : data.role);
     setField("project-stack", hideStack ? "" : data.stack);
