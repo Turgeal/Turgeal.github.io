@@ -24,8 +24,8 @@
     return node;
   }
 
-  /* Append one { t: "text", b?: bold, link?: true, br?: true } part to a
-     node; only textContent is used, never innerHTML. */
+  /* Append one { t: "text", b?: bold, link?: true, br?: true, href? } part
+     to a node; only textContent is used, never innerHTML. */
   function appendPart(node, part) {
     if (!part) { return; }
     if (part.br) {
@@ -33,12 +33,20 @@
       return;
     }
     var text = typeof part.t === "string" ? part.t : "";
+    var target = node;
+    if (part.href) {
+      var link = el("a");
+      link.href = part.href;
+      if (part.download) { link.setAttribute("download", ""); }
+      node.appendChild(link);
+      target = link;
+    }
     if (part.b) {
       var strong = document.createElement("strong");
       strong.textContent = text;
-      node.appendChild(strong);
+      target.appendChild(strong);
     } else {
-      node.appendChild(document.createTextNode(text));
+      target.appendChild(document.createTextNode(text));
     }
   }
 
