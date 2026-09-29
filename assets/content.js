@@ -25,20 +25,19 @@ window.CONTENT = {
       "A Hegelian and a Tolkien reader."
     ],
 
-    projectsHeading: "The projects I've done.",
     outsideHeading: "Projects outside courses (click to see detail).",
     outsideItems: [
       {
         slug: "vingilote",
         parts: [
-          { t: "Vingilote", b: true },
+          { t: "Vingilote", b: true, link: true },
           { t: ": An AI-driven book-wide \"compressed-original\" bijection builder and a two-column reader that displays this bijection." }
         ]
       },
       {
         slug: "braudel",
         parts: [
-          { t: "Braudel", b: true },
+          { t: "Braudel", b: true, link: true },
           { t: ": An AI-driven humanities & social sciences research tool for building timelines & cultural genealogy across a knowledge base of hundreds of books (still under study)." }
         ]
       }
@@ -50,7 +49,9 @@ window.CONTENT = {
       {
         slug: "meteorite",
         parts: [
-          { t: "1. Meteorite classification based on neural network (" },
+          { t: "1. " },
+          { t: "Meteorite classification based on neural network", link: true },
+          { t: " (" },
           { t: "ranking 1st in Kaggle among 19 groups", b: true },
           { t: ")." }
         ]
@@ -58,7 +59,9 @@ window.CONTENT = {
       {
         slug: "quant-hadoop",
         parts: [
-          { t: "2. Quant factor calculation based on Hadoop (" },
+          { t: "2. " },
+          { t: "Quant factor calculation based on Hadoop", link: true },
+          { t: " (" },
           { t: "full marks for the presentation part, for I vividly illustrated all concepts and procedures", b: true },
           { t: ")." }
         ]
@@ -66,7 +69,9 @@ window.CONTENT = {
       {
         slug: "dqn-cartpole",
         parts: [
-          { t: "3. Deep Q-Learning on CartPole-v1 (" },
+          { t: "3. " },
+          { t: "Deep Q-Learning on CartPole-v1", link: true },
+          { t: " (" },
           { t: "found a novel way to solve it, causing a round of applause", b: true },
           { t: ")." }
         ]
@@ -74,7 +79,9 @@ window.CONTENT = {
       {
         slug: "mathematicians-video",
         parts: [
-          { t: "4. How the distribution of mathematicians changes over time and across different places (" },
+          { t: "4. " },
+          { t: "How the distribution of mathematicians changes over time and across different places", link: true },
+          { t: " (" },
           { t: "I made a 3B1B-style video, causing a round of applause", b: true },
           { t: ")." }
         ]
@@ -84,13 +91,17 @@ window.CONTENT = {
       {
         slug: "stackoverflow-spring",
         parts: [
-          { t: "5. Stack Overflow Java Q&A data analysis and visualization based on Spring Boot." }
+          { t: "5. " },
+          { t: "Stack Overflow Java Q&A data analysis and visualization", link: true },
+          { t: " based on Spring Boot." }
         ]
       },
       {
         slug: "convex-optimization-video",
         parts: [
-          { t: "6. A video about how convex optimization is used in industry, based on my interview with the founder of a company (Cardinal Operations (Beijing) Co., Ltd.) that builds solvers." }
+          { t: "6. " },
+          { t: "A video about how convex optimization is used in industry", link: true },
+          { t: ", based on my interview with the founder of a company (Cardinal Operations (Beijing) Co., Ltd.) that builds solvers." }
         ]
       }
     ],
@@ -216,20 +227,19 @@ window.CONTENT = {
       "一个黑格尔主义者，一个托尔金读者。"
     ],
 
-    projectsHeading: "我做过的项目",
     outsideHeading: "课程外项目（点击查看详情）",
     outsideItems: [
       {
         slug: "vingilote",
         parts: [
-          { t: "Vingilote", b: true },
+          { t: "Vingilote", b: true, link: true },
           { t: "：一个由 AI 驱动的、全书范围的“压缩—原文”双射构建器，以及一个显示该双射的双栏阅读器。" }
         ]
       },
       {
         slug: "braudel",
         parts: [
-          { t: "Braudel", b: true },
+          { t: "Braudel", b: true, link: true },
           { t: "：一款由 AI 驱动的人文与社会科学研究工具，用于在包含数百本书的知识库中构建时间线与文化谱系（仍在研究中）。" }
         ]
       }
@@ -241,7 +251,9 @@ window.CONTENT = {
       {
         slug: "meteorite",
         parts: [
-          { t: "1. 基于神经网络的陨石分类（" },
+          { t: "1. " },
+          { t: "基于神经网络的陨石分类", link: true },
+          { t: "（" },
           { t: "在 Kaggle 的 19 个小组中排名第一", b: true },
           { t: "）。" }
         ]
@@ -249,7 +261,9 @@ window.CONTENT = {
       {
         slug: "quant-hadoop",
         parts: [
-          { t: "2. 基于 Hadoop 的量化因子计算（" },
+          { t: "2. " },
+          { t: "基于 Hadoop 的量化因子计算", link: true },
+          { t: "（" },
           { t: "展示部分获得满分，因为我生动地阐释了所有概念和流程", b: true },
           { t: "）。" }
         ]
@@ -257,7 +271,9 @@ window.CONTENT = {
       {
         slug: "dqn-cartpole",
         parts: [
-          { t: "3. 在 CartPole-v1 上的深度 Q 学习（" },
+          { t: "3. " },
+          { t: "在 CartPole-v1 上的深度 Q 学习", link: true },
+          { t: "（" },
           { t: "找到了一种新颖的解决方法，赢得阵阵掌声", b: true },
           { t: "）。" }
         ]
@@ -265,7 +281,9 @@ window.CONTENT = {
       {
         slug: "mathematicians-video",
         parts: [
-          { t: "4. 数学家的分布如何随时间和不同地点变化（" },
+          { t: "4. " },
+          { t: "数学家的分布如何随时间和不同地点变化", link: true },
+          { t: "（" },
           { t: "我制作了一个 3B1B 风格视频，赢得阵阵掌声", b: true },
           { t: "）。" }
         ]
@@ -275,13 +293,17 @@ window.CONTENT = {
       {
         slug: "stackoverflow-spring",
         parts: [
-          { t: "5. 基于 Spring Boot 的 Stack Overflow Java 问答数据分析与可视化。" }
+          { t: "5. 基于 Spring Boot 的 " },
+          { t: "Stack Overflow Java 问答数据分析与可视化", link: true },
+          { t: "。" }
         ]
       },
       {
         slug: "convex-optimization-video",
         parts: [
-          { t: "6. 一个关于凸优化如何在工业中应用的视频，基于我对一家构建求解器的公司（Cardinal Operations (Beijing) Co., Ltd.）创始人的采访。" }
+          { t: "6. " },
+          { t: "一个关于凸优化如何在工业中应用的视频", link: true },
+          { t: "，基于我对一家构建求解器的公司（Cardinal Operations (Beijing) Co., Ltd.）创始人的采访。" }
         ]
       }
     ],

@@ -24,22 +24,40 @@
     return node;
   }
 
-  /* Append text to a node. `value` is a string or an array of
-     { t: "text", b: true } parts; only textContent is used. */
-  function appendParts(node, value) {
+  /* Append one { t: "text", b?: bold, link?: true } part to a node;
+     only textContent is used, never innerHTML. */
+  function appendPart(node, part) {
+    if (!part) { return; }
+    var text = typeof part.t === "string" ? part.t : "";
+    if (part.b) {
+      var strong = document.createElement("strong");
+      strong.textContent = text;
+      node.appendChild(strong);
+    } else {
+      node.appendChild(document.createTextNode(text));
+    }
+  }
+
+  /* Append a string or an array of parts. Parts marked { link: true } are
+     wrapped in one link to the item's project page. */
+  function appendParts(node, value, href) {
     if (typeof value === "string") {
       node.appendChild(document.createTextNode(value));
       return;
     }
     if (Array.isArray(value)) {
+      var anchor = null;
       value.forEach(function (part) {
-        var text = part && typeof part.t === "string" ? part.t : "";
-        if (part && part.b) {
-          var strong = document.createElement("strong");
-          strong.textContent = text;
-          node.appendChild(strong);
+        if (part && part.link && href) {
+          if (!anchor) {
+            anchor = el("a");
+            anchor.href = href;
+            node.appendChild(anchor);
+          }
+          appendPart(anchor, part);
         } else {
-          node.appendChild(document.createTextNode(text));
+          anchor = null;
+          appendPart(node, part);
         }
       });
       return;
@@ -65,14 +83,8 @@
     clear(list);
     items.forEach(function (item) {
       var li = el("li");
-      if (linkify) {
-        var a = el("a");
-        a.href = "project.html?id=" + encodeURIComponent(item.slug);
-        appendParts(a, item.parts);
-        li.appendChild(a);
-      } else {
-        appendParts(li, item.parts);
-      }
+      var href = linkify && item.slug ? "project.html?id=" + encodeURIComponent(item.slug) : null;
+      appendParts(li, item.parts, href);
       list.appendChild(li);
     });
   }
@@ -95,7 +107,6 @@
       });
     }
 
-    setText("projects-heading", dictionary.projectsHeading);
     setText("outside-heading", dictionary.outsideHeading);
     buildItems("outside-list", dictionary.outsideItems, true);
 
